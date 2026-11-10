@@ -44,6 +44,19 @@ public static class SaveFolderTests
         Assert.Throws<InvalidDataException>(() => SaveFolder.ReadFiles(missing));
     }
 
+    [Fact]
+    public static void EditGold()
+    {
+        var save = SaveFolder.ReadFiles(GetFiles());
+        Assert.True(save.Common.HasGold);
+        Assert.Equal(0u, save.Common.Gold);
+        save.Common.Gold = 2300;
+        Assert.Equal(2300u, ReadUInt32LittleEndian(save.Common.Data.AsSpan(SaveLayout.Version70.GoldOffset)));
+        var reopened = SaveFolder.ReadFiles(save.ExportFiles());
+        Assert.Equal(2300u, reopened.Common.Gold);
+        Assert.Throws<ArgumentException>(() => reopened.Common.Gold = SaveFile.MaxGold + 1);
+    }
+
     private static Dictionary<string, byte[]> GetFiles()
     {
         var layout = SaveLayout.Version70;

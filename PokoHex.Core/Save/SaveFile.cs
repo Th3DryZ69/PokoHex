@@ -19,6 +19,7 @@ public sealed class SaveFile
     public Villager[] Villagers { get; }
     public PlayerAbilities? Abilities { get; }
     public FunctionFlags? Flags { get; }
+    public const uint MaxGold = 999_999;
     public bool IsEdited => !Data.AsSpan().SequenceEqual(OriginalData);
 
     private SaveFile(byte[] original, byte[] data, SaveLayout layout)
@@ -37,6 +38,22 @@ public sealed class SaveFile
         if (layout.PlayerAbilitiesOffset != 0)
             Abilities = new PlayerAbilities(Data.AsMemory(layout.PlayerAbilitiesOffset, PlayerAbilities.SIZE),
                 Data.AsMemory(layout.FunctionFlagsOffset, FunctionFlags.SIZE));
+    }
+
+    /// <summary>True when the gold balance location is known for this save version.</summary>
+    public bool HasGold => Layout.GoldOffset != 0;
+
+    public uint Gold
+    {
+        get => HasGold ? ReadUInt32LittleEndian(Data.AsSpan(Layout.GoldOffset)) : 0;
+        set
+        {
+            if (!HasGold)
+                throw new InvalidOperationException("Editing gold is not supported for this save version.");
+            if (value > MaxGold)
+                throw new ArgumentException($"Gold must be between 0 and {MaxGold:N0}.");
+            WriteUInt32LittleEndian(Data.AsSpan(Layout.GoldOffset), value);
+        }
     }
 
     public string PlayerName

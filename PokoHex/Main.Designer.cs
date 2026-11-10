@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+using PokoHex.Core;
 
 namespace PokoHex;
 
@@ -44,6 +45,8 @@ partial class Main
         Editor_Reactions = new AbilityEditor { Reactions = true, Dock = DockStyle.Fill, Visible = false };
         var name = new Label();
         TB_Name = new TextBox();
+        var gold = new Label();
+        NUD_Gold = new NumericUpDown();
         DGV_Items = new DataGridView();
         CB_Inventory = new ComboBox();
         var inventoryPanel = new Panel();
@@ -106,7 +109,15 @@ partial class Main
         TB_Name.Location = new Point(114, 16);
         TB_Name.Size = new Size(244, 23);
         TB_Name.MaxLength = 24;
-        playerHeader.Controls.AddRange([name, TB_Name, playerSections]);
+        gold.AutoSize = true;
+        gold.Location = new Point(372, 20);
+        gold.Text = "Gold:";
+        NUD_Gold.Location = new Point(416, 16);
+        NUD_Gold.Size = new Size(110, 23);
+        NUD_Gold.Minimum = 0;
+        NUD_Gold.Maximum = SaveFile.MaxGold;
+        NUD_Gold.ThousandsSeparator = true;
+        playerHeader.Controls.AddRange([name, TB_Name, gold, NUD_Gold, playerSections]);
         player.Controls.AddRange([Editor_Reactions, Editor_Skills, playerHeader]);
         items.Padding = new Padding(8);
         split.Dock = DockStyle.Fill;
@@ -211,6 +222,7 @@ partial class Main
     private ToolStripStatusLabel L_Status = null!;
     private TabControl TC_Editor = null!;
     private TextBox TB_Name = null!;
+    private NumericUpDown NUD_Gold = null!;
     private DataGridView DGV_Items = null!;
     private ComboBox CB_Inventory = null!;
     private ComboBox CB_Item = null!;

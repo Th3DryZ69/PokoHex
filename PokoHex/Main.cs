@@ -27,7 +27,9 @@ public partial class Main : Form
         }
     }
 
-    private bool HasChanges => SAV != null && (SAV.IsEdited || TB_Name.Text != SAV.Common.PlayerName || HasSlotChanges || Editor_Villagers.HasChanges || Editor_Map.HasChanges || Editor_Skills.HasChanges || Editor_Reactions.HasChanges || Editor_Flags.HasChanges);
+    private bool HasChanges => SAV != null && (SAV.IsEdited || TB_Name.Text != SAV.Common.PlayerName || HasGoldChanges || HasSlotChanges || Editor_Villagers.HasChanges || Editor_Map.HasChanges || Editor_Skills.HasChanges || Editor_Reactions.HasChanges || Editor_Flags.HasChanges);
+
+    private bool HasGoldChanges => SAV != null && SAV.Common.HasGold && (uint)NUD_Gold.Value != SAV.Common.Gold;
 
     private bool HasSlotChanges
     {
@@ -57,6 +59,8 @@ public partial class Main : Form
             SAV = save;
             Loading = true;
             TB_Name.Text = save.Common.PlayerName;
+            NUD_Gold.Enabled = save.Common.HasGold;
+            NUD_Gold.Value = save.Common.Gold;
             CB_Inventory.SelectedIndex = 0;
             InventoryStart = 0;
             TC_Editor.Enabled = true;
@@ -289,11 +293,15 @@ public partial class Main : Form
             Editor_Flags.SaveChanges();
             if (TB_Name.Text != SAV.Common.PlayerName)
                 SAV.Common.PlayerName = TB_Name.Text;
+            if (HasGoldChanges)
+                SAV.Common.Gold = (uint)NUD_Gold.Value;
             using var dialog = new FolderBrowserDialog { Description = "Select a new, empty folder for the edited save", UseDescriptionForTitle = true };
             if (dialog.ShowDialog() != DialogResult.OK)
                 return;
             SAV.Export(dialog.SelectedPath);
             SAV = SaveFolder.Read(dialog.SelectedPath);
+            NUD_Gold.Enabled = SAV.Common.HasGold;
+            NUD_Gold.Value = SAV.Common.Gold;
             Editor_Villagers.LoadSave(SAV.Common);
             Editor_Map.LoadSave(SAV);
             Editor_Skills.LoadSave(SAV.Common);

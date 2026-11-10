@@ -46,6 +46,11 @@
                     <div class="player-header">
                         <label for="player-name">Player name:</label>
                         <input id="player-name" @bind="PlayerName" @bind:event="oninput" />
+                        @if (SAV.Common.HasGold)
+                        {
+                            <label for="player-gold">Gold:</label>
+                            <input id="player-gold" type="number" min="0" max="@SaveFile.MaxGold" step="1" @bind="Gold" @bind:event="oninput" />
+                        }
                         <div class="player-sections" role="group" aria-label="Player editor">
                             <button aria-pressed="@(PlayerSection == "Skills")" @onclick='() => PlayerSection = "Skills"'>Skills</button>
                             <button aria-pressed="@(PlayerSection == "Reactions")" @onclick='() => PlayerSection = "Reactions"'>Reactions</button>

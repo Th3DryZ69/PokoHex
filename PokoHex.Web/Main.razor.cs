@@ -25,6 +25,7 @@ public partial class Main : IAsyncDisposable
     private ElementReference EditorWindow;
     private DotNetObjectReference<Main>? DropReference;
     private string PlayerName = string.Empty;
+    private uint Gold;
     private string SaveName = string.Empty;
     private string SelectedTab = "Player";
     private string PlayerSection = "Skills";
@@ -35,13 +36,13 @@ public partial class Main : IAsyncDisposable
     private bool MapOpened;
     private bool? BrowserDirty;
     private RenderState? LastRender;
-    private readonly record struct RenderState(SaveFolder? Save, string Name, string SaveName, string Tab, string PlayerSection,
+    private readonly record struct RenderState(SaveFolder? Save, string Name, uint Gold, string SaveName, string Tab, string PlayerSection,
         string Status, string Error, int Language, bool Busy, bool MapOpened, bool Dirty);
-    private bool HasChanges => SAV != null && (PlayerName != SAV.Common.PlayerName ||
+    private bool HasChanges => SAV != null && (PlayerName != SAV.Common.PlayerName || (SAV.Common.HasGold && Gold != SAV.Common.Gold) ||
         Editor_Items?.HasChanges == true || Editor_Villagers?.HasChanges == true || Editor_Map?.HasChanges == true ||
         Editor_Skills?.HasChanges == true || Editor_Reactions?.HasChanges == true || Editor_Flags?.HasChanges == true || SAV.IsEdited);
 
-    private RenderState GetRenderState() => new(SAV, PlayerName, SaveName, SelectedTab, PlayerSection, Status, Error, Language, Busy, MapOpened, HasChanges);
+    private RenderState GetRenderState() => new(SAV, PlayerName, Gold, SaveName, SelectedTab, PlayerSection, Status, Error, Language, Busy, MapOpened, HasChanges);
     protected override bool ShouldRender() => LastRender != GetRenderState();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -116,6 +117,7 @@ public partial class Main : IAsyncDisposable
         SAV = save;
         SaveName = name;
         PlayerName = save.Common.PlayerName;
+        Gold = save.Common.Gold;
         Editor_Items = null;
         Editor_Villagers = null;
         Editor_Map = null;
@@ -140,6 +142,8 @@ public partial class Main : IAsyncDisposable
                 var check = SaveFile.Read(SAV.Common.Write());
                 check.PlayerName = PlayerName;
             }
+            if (SAV.Common.HasGold && Gold != SAV.Common.Gold)
+                SaveFile.Read(SAV.Common.Write()).Gold = Gold;
             Editor_Map?.SaveChanges();
             Editor_Items?.SaveChanges();
             Editor_Villagers?.SaveChanges();
@@ -148,6 +152,8 @@ public partial class Main : IAsyncDisposable
             Editor_Flags?.SaveChanges();
             if (PlayerName != SAV.Common.PlayerName)
                 SAV.Common.PlayerName = PlayerName;
+            if (SAV.Common.HasGold && Gold != SAV.Common.Gold)
+                SAV.Common.Gold = Gold;
             var files = SAV.ExportFiles();
             using var output = SaveArchive.WriteZip(files);
             using var reference = new DotNetStreamReference(output);
